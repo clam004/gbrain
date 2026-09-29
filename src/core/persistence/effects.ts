@@ -31,7 +31,7 @@ import { isSourceDbOnlySlug } from './source-storage.ts';
 import { advanceEffectCursor, claimCoalescedGitEffects, claimPersistenceEffect, completeEffect, failEffect, parkEffect, renewPersistenceEffectClaim, requeueEffect, retryEffect, singleFileGitEffect } from './effect-journal.ts';
 import { guardEffectSource, recoverEffectPublication, reserveEffectRecovery } from './effect-recovery.ts';
 import { commitGitTargets, publishGitEffect, pushGitRoot } from './effect-git.ts';
-import { isDurabilityHardenedAsync } from '../brain-repo-durability.ts';
+import { isGitEffectEnabledAsync } from '../brain-repo-durability.ts';
 import { dispatchFactsBackstopEffect } from './effect-facts.ts';
 import { runLinksEffect } from './effect-links.ts';
 import { PARK_AFTER_FAILURES, type EffectRecovery, type GitCommitNote, type PersistenceEffect, type SkippedTarget } from './effect-model.ts';
@@ -614,7 +614,7 @@ export async function runPersistenceEffects(engine: BrainEngine, config: GBrainC
       } catch (error) { await recordFailure(engine, effect, error, opts.signal); continue; }
       if (effect.kind === 'git' && binding?.local_path) {
         const root = binding.local_path;
-        if (!probes.has(root)) probes.set(root, isDurabilityHardenedAsync(root).then(durable => ({ durable }), error => ({ error })));
+        if (!probes.has(root)) probes.set(root, isGitEffectEnabledAsync(root).then(durable => ({ durable }), error => ({ error })));
         const group = singleFileGitEffect(effect) && effect.worktree_id
           ? [effect, ...await claimCoalescedGitEffects(engine, opts.hostId, effect.worktree_id, GIT_GROUP_SIZE - 1)] : [effect];
         deferred.push({ effects: group, binding, hardened: probes.get(root)! });

@@ -171,7 +171,8 @@ export async function runPersistenceAdministration(engine: BrainEngine, operatio
   if (operation === 'source_add') {
     keys(params, ['options', 'request_id', 'dry_run', 'legacy_hardening']);
     if (params.legacy_hardening !== undefined) throw new OperationError('writer_coordinator_required',
-      'Source creation cannot install legacy Git hardening on a managed worktree.', 'Create the source without --pat-file.');
+      'Source creation cannot install legacy Git hardening on a managed worktree.',
+      'Create the source without --pat-file. After the source is registered, run `gbrain sources harden <id>` on the owner host to enable managed Git effects.');
     if (!params.options || typeof params.options !== 'object' || Array.isArray(params.options)) throw invalid('Source add requires typed options.',
       'Add the source with gbrain sources add, which builds the typed options; a resident-proxy caller sends params.options as a JSON object.');
     const { managedSourceAddInput } = await import('./managed-sources.ts');
